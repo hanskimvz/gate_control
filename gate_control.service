@@ -1,0 +1,34 @@
+[Unit]
+Description=GATE CONTROL Backend API Server
+After=network.target mongodb.service
+Wants=mongodb.service
+
+[Service]
+Type=exec
+User=hanskim
+Group=hanskim
+WorkingDirectory=/home/hanskim/GATE/api
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/hanskim/.local/bin
+Environment=HOST=0.0.0.0
+Environment=PORT=22450
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 22450 --reload
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=GATE-backend
+
+# 보안 설정
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/home/hanskim/GATE/api
+ReadWritePaths=/home/hanskim/GATE/api/logs
+ProtectHome=false
+#ProtectKernelTunables=true
+#ProtectKernelModules=true
+#ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,100 @@
+from pydantic_settings import BaseSettings
+from typing import Optional, Dict, List, Any
+import json
+import os
+from pathlib import Path
+
+
+class Settings(BaseSettings):
+    # MongoDB 설정
+    mongodb_url: str = "mongodb://localhost:27017"
+    database_name: str = "gate_db"
+    
+    # API 설정
+    api_title: str = "Gate API"
+    api_version: str = "1.0.0"
+    debug: bool = False
+    
+    # 보안 설정
+    secret_key: Optional[str] = None
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
+
+def load_config_json() -> Dict[str, Any]:
+    """config.json 파일을 읽어서 반환"""
+    # 환경 변수로 경로 지정 가능
+    env_config_path = os.getenv("CONFIG_JSON_PATH")
+    if env_config_path:
+        config_path = Path(env_config_path).resolve()
+        if config_path.exists() and config_path.is_file():
+            with open(config_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            raise FileNotFoundError(f"환경 변수 CONFIG_JSON_PATH로 지정한 파일을 찾을 수 없습니다: {config_path}")
+    
+    # 현재 파일 위치에서 프로젝트 루트 찾기
+    # backend/config/config.py -> backend/ -> 프로젝트 루트
+    current_file = Path(__file__).resolve()
+    backend_dir = current_file.parent.parent  # backend/
+    project_root = backend_dir.parent  # 프로젝트 루트
+    
+    # 여러 가능한 경로 시도
+    possible_paths = [
+        # 1. 프로젝트 루트의 config/config.json (기본)
+        project_root / "config" / "config.json",
+        # 2. 현재 작업 디렉토리 기준
+        Path.cwd() / "config" / "config.json",
+        # 3. backend/ 디렉토리에서 실행하는 경우
+        Path.cwd().parent / "config" / "config.json" if Path.cwd().name == "backend" else None,
+        # 4. backend/config/ 디렉토리에서 실행하는 경우
+        Path.cwd().parent.parent / "config" / "config.json" if Path.cwd().name == "config" else None,
+        # 5. backend/config/config.json (로컬 설정 파일)
+        backend_dir / "config" / "config.json",
+    ]
+    
+    # None이 아닌 경로만 필터링하고 시도
+    config_path = None
+    tried_paths = []
+    
+    for path in possible_paths:
+        if path is None:
+            continue
+        try:
+            resolved_path = path.resolve()
+            tried_paths.append(str(resolved_path))
+            if resolved_path.exists() and resolved_path.is_file():
+                config_path = resolved_path
+                break
+        except (OSError, RuntimeError) as e:
+            tried_paths.append(f"{path} (오류: {e})")
+            continue
+    
+    if config_path is None:
+        # 모든 경로를 시도했지만 찾지 못한 경우
+        cwd = Path.cwd()
+        raise FileNotFoundError(
+            f"config.json 파일을 찾을 수 없습니다.\n"
+            f"현재 파일 위치: {current_file}\n"
+            f"프로젝트 루트: {project_root}\n"
+            f"현재 작업 디렉토리: {cwd}\n"
+            f"시도한 경로:\n" + 
+            "\n".join(f"  - {p}" for p in tried_paths) +
+            f"\n\n디버깅 정보:\n"
+            f"  - backend_dir 존재: {backend_dir.exists()}\n"
+            f"  - project_root 존재: {project_root.exists()}\n"
+            f"  - project_root/config 존재: {(project_root / 'config').exists()}"
+        )
+    
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+settings = Settings()
+config_data = load_config_json()
+
+if __name__ == "__main__":
+    print(config_data)
+
