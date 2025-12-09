@@ -31,7 +31,6 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>날짜</th>
               <th>사용자</th>
               <th>이벤트</th>
@@ -43,12 +42,11 @@
           <tbody>
             <tr 
               v-for="log in logs" 
-              :key="log.pk"
+              :key="log.user_id"
               class="log-row"
             >
-              <td class="id-cell">{{ log.pk }}</td>
               <td class="date-cell">{{ formatDate(log.regdate) }}</td>
-              <td class="user-cell">{{ log.user_id || '-' }}</td>
+              <td class="user-cell">{{ log.user_name || '-' }}</td>
               <td class="event-cell">
                 <span :class="['event-badge', getEventModeClass(log.eventinfo?.mode)]">
                   {{ log.eventinfo?.mode || '-' }}

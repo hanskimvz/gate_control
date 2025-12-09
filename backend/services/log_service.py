@@ -119,17 +119,21 @@ async def get_logs(page: int = 1, offset: int = 20) -> List[Dict[str, Any]]:
     if db is None:
         return []
     
-    collection_name = config_data.get('MONGODB', {}).get('tables', {}).get('log', 'user_log')
-    collection = db[collection_name]
+    collection_name = config_data.get('MONGODB', {}).get('tables', {}).get('log', 'gate_log')
+    collection_log  = db[config_data.get('MONGODB', {}).get('tables', {}).get('log', 'gate_log')]
+    collection_user = db[config_data.get('MONGODB', {}).get('tables', {}).get('user', 'user')]
     
     skip = (page - 1) * offset
     
-    cursor = collection.find().sort("timestamp", -1).skip(skip).limit(offset)
+    cursor = collection_log.find().sort("timestamp", -1).skip(skip).limit(offset)
     logs = []
     async for doc in cursor:
-        # _id를 문자열로 변환
-        if "_id" in doc:
-            doc["id"] = str(doc["_id"])
+        user_doc = await collection_user.find_one({"user_id": doc["user_id"]})
+        # print ("user_doc", user_doc)
+        if user_doc:
+            doc["user_name"] = user_doc.get("name")
+        else:
+            doc["user_name"] = "-"
         logs.append(doc)
     return logs
 

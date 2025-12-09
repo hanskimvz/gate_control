@@ -24,9 +24,9 @@ async def list_log(
     
     return {
         "logs": [{
-            "pk": log.get("id", ""),
             "regdate": log.get("regdate").isoformat() if isinstance(log.get("regdate"), datetime) else log.get("regdate"),
             "user_id": log.get("user_id"),
+            "user_name": log.get("user_name"),
             "eventinfo": log.get("eventinfo", {}),
             "snapshot": log.get("snapshot"),
             "user_agent": log.get("user_agent"),

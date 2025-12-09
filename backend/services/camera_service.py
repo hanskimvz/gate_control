@@ -13,7 +13,7 @@ def active_cgi(dev_ip, header = None, authkey='',cgi_str='', port=80):
     """장치에 CGI 명령을 실행하는 함수"""
     url = f'{dev_ip}:{port}/{cgi_str}'
     url = 'http://' + url.replace("//", "/").strip()
-    logger.debug(f"CGI request: {url}")
+    # logger.debug(f"CGI request: {url}")
 
     try:
         # header가 딕셔너리가 아니거나 빈 문자열이면 None으로 설정
@@ -36,7 +36,7 @@ async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
             return None
         
         camera = cameras[cam_name]
-        print ("camera: ", camera)
+        # print ("camera: ", camera)
         port = camera.get('port', 80)
         userid = camera.get('userid', '')
         userpw = camera.get('userpw', '')
@@ -96,7 +96,7 @@ async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
 async def put_do(cam_name: str = 'main', secs: int = 0 ) -> bool:
     """디지털 출력 제어 (문 열기, 문 닫기)"""
     cameras = config_data.get('CAMERAS', [])
-    print ("camera_config: ", cameras)
+    # print ("camera_config: ", cameras)
     if cam_name not in cameras:
         logger.error(f"카메라 이름 오류: {cam_name}")
         return None    

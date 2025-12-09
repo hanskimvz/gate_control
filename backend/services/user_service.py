@@ -188,19 +188,19 @@ def valid_datetime(date_from: str, date_to: str, hour_from: int, hour_to: int) -
         if date_from != "0000-00-00":
             dt_from = datetime.strptime(f"{date_from} 00:00:00", "%Y-%m-%d %H:%M:%S")
             dt_from = dt_from.replace(tzinfo=kst)
-            print ("dt_from", dt_from)
+            # print ("dt_from", dt_from)
             if now < dt_from:
                 return False
         
         if date_to != "0000-00-00":
             dt_to = datetime.strptime(f"{date_to} 23:59:59", "%Y-%m-%d %H:%M:%S")
             dt_to = dt_to.replace(tzinfo=kst)
-            print ("dt_to", dt_to)
+            # print ("dt_to", dt_to)
             if now > dt_to:
                 return False
         
-        print ("hour_from", hour_from)
-        print ("hour_to", hour_to)
+        # print ("hour_from", hour_from)
+        # print ("hour_to", hour_to)
 
         if hour_from + hour_to != 0:
             current_hour = now.hour
@@ -208,10 +208,8 @@ def valid_datetime(date_from: str, date_to: str, hour_from: int, hour_to: int) -
             if current_hour < hour_from or current_hour >= hour_to:
                 return False
 
-        print ("return True")
         return True
     except Exception as e:
         logger.error(f"날짜/시간 검증 실패: {e}", exc_info=True)
         return False
-        print ("return False")
 
