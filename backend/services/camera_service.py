@@ -63,31 +63,7 @@ async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
         img_data = base64.b64encode(rs).decode('utf-8')
         return f"data:image/jpg;base64,{img_data}"
         
-        img_data = base64.b64encode(rs)
-        return f"data:image/jpg;base64,{img_data}"
 
-
-        # def fetch_image():
-        #     try:
-        #         rs = active_cgi(address, HTTPBasicAuth(userid, userpw), snapshot_cgi)
-        #         if not rs:
-        #             logger.error(f"카메라 스냅샷 가져오기 실패: {rs}")
-        #             return None
-                
-        #         img_data = base64.b64encode(rs).decode('utf-8')
-        #         return f"data:image/jpg;base64,{img_data}"
-        #     except URLError as e:
-        #         logger.error(f"URL 오류: {e}")
-        #         return None
-        #     except Exception as e:
-        #         logger.error(f"이미지 가져오기 오류: {e}", exc_info=True)
-        #         return None
-        #     return None
-        
-        # # 비동기로 실행 (Python 3.8+ 호환)
-        # loop = asyncio.get_event_loop()
-        # result = await loop.run_in_executor(None, fetch_image)
-        # return result
     except Exception as e:
         logger.error(f"스냅샷 가져오기 실패: {e}", exc_info=True)
         return None
