@@ -4,7 +4,7 @@ Gate 관련 API 라우터
 from fastapi import APIRouter, HTTPException, Request, Query
 from typing import Optional
 import base64
-from urllib.parse import unquote
+from urllib.parse import unquote, parse_qs
 from models import OpenDoorRequest, SnapshotRequest
 from services.user_service import (
     get_user_by_api_key,
@@ -90,7 +90,8 @@ async def gate_handler(request: Request, body: dict):
     
     elif action == "snapshot":
         cam_name = data.get("cam_name", "main")
-        image_date = await get_snapshot(cam_name=cam_name)
+        return await get_snapshot(cam_name=cam_name)
+    
 
     
     elif action == "exit":
@@ -119,8 +120,8 @@ async def exit(
     if not user or user_id != "vivasejin":
         raise HTTPException(status_code=401, detail="check api_key")
 
-    # ret = open_action(api_key, user)
-    ret = True
+    ret = open_action(api_key, user)
+    # ret = True
     if ret:
         snapshot = await get_snapshot(cam_name="sub1")
         eventinfo = {
@@ -194,33 +195,34 @@ async def exit_action(request: Optional[Request], api_key: str, user: dict):
 @router.post("/snapshot")
 async def store_snapshot(request: Request):
     """스냅샷 저장 API (POST 방식으로 eventinfo와 snapshot 파일 받기)"""
-    # Query string 처리
+    # Query string 파싱
     query_str = unquote(str(request.url.query))
+    query_params = parse_qs(query_str)
     
-    # Form data 가져오기
-    form = await request.form()
-    eventinfo = form.get("eventinfo", "")
-
-    client_ip = request.client.host if request and request.client else "unknown"
-    server_user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
+    # Query string에서 eventinfo 딕셔너리 생성
     eventinfo = {
-        "ip": client_ip,
-        "mode": "snapshot",
-        "user_agent": server_user_agent
+        "mode": "snapshot"
     }
-
+    for key, value_list in query_params.items():
+        # parse_qs는 리스트를 반환하므로 첫 번째 값 사용
+        eventinfo[key] = value_list[0] if value_list else ""
 
     # Snapshot 파일 처리
-    snapshot_file = form.get("snapshot")
-    if snapshot_file:
-        # 파일 읽기
-        file_content = await snapshot_file.read()
-        # Base64 인코딩 및 data URI 형식으로 변환
-        snapshot_base64 = base64.b64encode(file_content).decode('utf-8')
-        snapshot_data = f"data:image/jpg;base64,{snapshot_base64}"
-    else:
-        snapshot_data = ""
+    snapshot_data = ""
+    try:
+        form = await request.form()
+        snapshot_file = form.get("snapshot")
+        if snapshot_file:
+            # 파일 읽기
+            file_content = await snapshot_file.read()
+            # Base64 인코딩 및 data URI 형식으로 변환
+            snapshot_base64 = base64.b64encode(file_content).decode('utf-8')
+            snapshot_data = f"data:image/jpg;base64,{snapshot_base64}"
+    except Exception as e:
+        # Form data가 없거나 파일이 없는 경우 정상적으로 처리
+        print(f"Form data 처리 오류 (무시 가능): {e}")
     
     # 로그 업데이트
     await update_log(user_id="snapshot", eventinfo=eventinfo, snapshot=snapshot_data, user_agent='snapshot')
-    return {"message": "snapshot stored OK"}        
+    return {"message": "snapshot stored OK"}
+
