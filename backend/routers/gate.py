@@ -120,7 +120,7 @@ async def exit(
     if not user or user_id != "vivasejin":
         raise HTTPException(status_code=401, detail="check api_key")
 
-    ret = open_action(api_key, user)
+    ret = await open_action(api_key, user)
     # ret = True
     if ret:
         snapshot = await get_snapshot(cam_name="sub1")
