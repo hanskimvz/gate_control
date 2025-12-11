@@ -3,12 +3,17 @@
     <div class="container">
       <!-- 환영 메시지 -->
       <div class="welcome-section">
-        <h1 v-if="userInfo.user_name" class="welcome-message">
-          <span class="welcome-text">{{ userInfo.user_name }}님 환영합니다.</span>
-        </h1>
+        <template v-if="userInfo.user_name">>
+          <h1 class="welcome-message">
+            <span class="welcome-text">{{ userInfo.user_name }}님 환영합니다.</span>
+            
+          </h1>
+        <small class="warning-text">문이 열리면 10초 후에 자동으로 닫힙니다.</small>
+        </template>
         <h1 v-else>
           <span>로딩 중...</span>
         </h1>
+        
         <div v-if="userInfo.valid === false" class="invalid-notice">
           <p>현재 접근 권한이 없습니다. 관리자에게 문의하세요.</p>
         </div>
@@ -254,7 +259,7 @@ onBeforeUnmount(() => {
 
 .welcome-section {
   text-align: center;
-  margin-top: 5px;
+  margin-top: 0px;
   margin-bottom: 10px;
   border-bottom: 2px solid #f0f0f0;
 }
@@ -288,6 +293,13 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
+}
+
+.warning-text {
+  color: #f44336;
+  font-weight: 500;
+  display: block;
+  margin-top: 10px;
 }
 
 .controls {

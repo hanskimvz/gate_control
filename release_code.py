@@ -389,9 +389,9 @@ def main():
     
 
     # cleanup_remote_dir(ssh)
-    # run_web_build()
-    # release_web(ssh)
-    release_api(ssh)
+    run_web_build()
+    release_web(ssh)
+    # release_api(ssh)
     # cp_nginx_conf(ssh)
     # cp_service_file(ssh)
     # release_bin(ssh)
