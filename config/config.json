@@ -56,6 +56,18 @@
                 "off": "nvc-cgi/admin/param.fcgi?action=update&group=DIDO.DO.Ch0&trig=off",
                 "trig": "nvc-cgi/admin/param.fcgi?action=update&group=DIDO.DO.Ch0&trigon="
             }
+        },
+        "sub5": {
+            "address": "192.168.3.188",
+            "port": 80,
+            "userid": "admin",
+            "userpw": "admin",
+            "snapshot_cgi": "api/v1/livestream/capture?stream=0",
+            "header": {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-Token": "5b11f22b192.168.1.25234572adminadmin"
+            }
         }
     },
     "MONGODB": {

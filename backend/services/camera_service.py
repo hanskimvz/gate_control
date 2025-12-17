@@ -4,7 +4,7 @@ import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from urllib.error import URLError
 from typing import Optional
-from config import config_data, update_config
+from config import config_data, update_config, load_config_json
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -37,6 +37,7 @@ async def get_x_token(ip_addr, port=80, userid='admin', userpw='admin'):
 
 async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
     """카메라에서 스냅샷을 가져옴"""
+    global config_data
     try:
         cameras = config_data.get('CAMERAS', [])
         # print ("camera_config: ", cameras)
@@ -70,7 +71,8 @@ async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
             if not img_data:
                 x_token = await get_x_token(address, port=port, userid=userid, userpw=userpw)
                 print("x_token: ", x_token)
-                update_config("CAMERAS.sub2.header.X-Token", x_token)
+                update_config(f"CAMERAS.{cam_name}.header.X-Token", x_token)
+                config_data = load_config_json()
 
             return f"data:image/jpg;base64,{img_data}"
         

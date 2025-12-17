@@ -11,7 +11,7 @@ from services.user_service import (
     valid_datetime
 )
 from services.camera_service import get_snapshot, put_do
-from services.log_service import create_log, update_log
+from services.log_service import update_log
 from config import config_data
 
 
@@ -181,12 +181,11 @@ async def exit_action(request: Optional[Request], api_key: str, user: dict):
             "mode": "exit",
             "api_key": api_key
         }
-        await create_log(
+        await update_log(
             user_id=user_id,
             eventinfo=eventinfo,
             user_agent="external_camera",
             snapshot=snapshot,
-            cam_no=1
         )
         return {"message": "opened"}
     else:
