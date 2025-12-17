@@ -4,7 +4,7 @@ import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from urllib.error import URLError
 from typing import Optional
-from config import config_data
+from config import config_data, update_config
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -25,6 +25,15 @@ def active_cgi(dev_ip, header = None, authkey='',cgi_str='', port=80):
         
     return r.content
 
+async def get_x_token(ip_addr, port=80, userid='admin', userpw='admin'):
+    url = f'http://{ip_addr}:{port}/api/v1/user/login'
+    data = {
+        'username': userid,
+        'password': userpw,
+    }
+    r = requests.post(url, json=data, timeout=20)
+    # print (r.json())
+    return r.json().get('data').get('token')
 
 async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
     """카메라에서 스냅샷을 가져옴"""
@@ -58,8 +67,13 @@ async def get_snapshot(cam_name: str = 'main') -> Optional[str]:
             rs = json.loads(rs)
         #     print (rs['data'][:100])
             img_data =rs.get('data')
+            if not img_data:
+                x_token = await get_x_token(address, port=port, userid=userid, userpw=userpw)
+                print("x_token: ", x_token)
+                update_config("CAMERAS.sub2.header.X-Token", x_token)
+
             return f"data:image/jpg;base64,{img_data}"
-            
+        
         img_data = base64.b64encode(rs).decode('utf-8')
         return f"data:image/jpg;base64,{img_data}"
         

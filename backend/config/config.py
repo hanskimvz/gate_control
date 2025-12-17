@@ -92,9 +92,101 @@ def load_config_json() -> Dict[str, Any]:
         return json.load(f)
 
 
+def get_config_json_path() -> Path:
+    """config.json 파일 경로를 반환"""
+    # 환경 변수로 경로 지정 가능
+    env_config_path = os.getenv("CONFIG_JSON_PATH")
+    if env_config_path:
+        config_path = Path(env_config_path).resolve()
+        if config_path.exists() and config_path.is_file():
+            return config_path
+        else:
+            raise FileNotFoundError(f"환경 변수 CONFIG_JSON_PATH로 지정한 파일을 찾을 수 없습니다: {config_path}")
+    
+    # 현재 파일 위치에서 프로젝트 루트 찾기
+    current_file = Path(__file__).resolve()
+    backend_dir = current_file.parent.parent
+    project_root = backend_dir.parent
+    
+    # 여러 가능한 경로 시도
+    possible_paths = [
+        project_root / "config" / "config.json",
+        Path.cwd() / "config" / "config.json",
+        Path.cwd().parent / "config" / "config.json" if Path.cwd().name == "backend" else None,
+        Path.cwd().parent.parent / "config" / "config.json" if Path.cwd().name == "config" else None,
+        backend_dir / "config" / "config.json",
+    ]
+    
+    for path in possible_paths:
+        if path is None:
+            continue
+        try:
+            resolved_path = path.resolve()
+            if resolved_path.exists() and resolved_path.is_file():
+                return resolved_path
+        except (OSError, RuntimeError):
+            continue
+    
+    raise FileNotFoundError("config.json 파일을 찾을 수 없습니다.")
+
+
+def update_config(key: str, value: Any) -> Dict[str, Any]:
+    """
+    config.json 파일의 특정 키 값을 업데이트합니다.
+    
+    Args:
+        key: 업데이트할 키 (점으로 구분된 경로 지원)
+             예: "VERSION", "CAMERAS.sub2.header.X-Token"
+        value: 새로운 값
+    
+    Returns:
+        업데이트된 전체 config 딕셔너리
+    
+    Examples:
+        update_config("VERSION", "1.1.1")
+        update_config("CAMERAS.sub2.header.X-Token", "new_token_value")
+        update_config("MONGODB.port", 5091)
+    """
+    global config_data
+    
+    config_path = get_config_json_path()
+    
+    # 현재 config 다시 로드 (다른 프로세스에서 변경되었을 수 있음)
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    
+    # 키 경로를 파싱하여 중첩된 딕셔너리 업데이트
+    keys = key.split('.')
+    
+    if len(keys) == 1:
+        # 최상위 키인 경우
+        config[key] = value
+    else:
+        # 중첩된 키인 경우
+        current = config
+        for k in keys[:-1]:
+            if k not in current:
+                current[k] = {}
+            current = current[k]
+        current[keys[-1]] = value
+    
+    # 파일에 저장
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+    
+    # 전역 config_data 업데이트
+    config_data = config
+    
+    return config
+
+
 settings = Settings()
 config_data = load_config_json()
 
 if __name__ == "__main__":
     print(config_data)
+    
+    # 테스트 예시
+    # update_config("VERSION", "1.1.1")
+    # update_config("CAMERAS.sub2.header.X-Token", "new_token_value")
 
